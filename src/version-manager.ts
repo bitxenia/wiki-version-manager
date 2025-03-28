@@ -9,16 +9,16 @@ export class VersionManager {
     this.versions = new Map();
     if (versions) {
       for (const version of versions) {
-        this.addVersion(version);
+        this.addVersionRaw(version);
       }
     }
-    this.lastVersion = this.versions.size > 0 ? this.getLastPatch() : null;
+    this.lastVersion = this.getLastVersion();
     this.cachedMainBranch = null;
   }
 
   public addVersion(version: Version) {
     this.addVersionRaw(version);
-    this.lastVersion = this.getLastPatch();
+    this.lastVersion = this.getLastVersion();
     this.cachedMainBranch = null;
   }
 
@@ -57,36 +57,47 @@ export class VersionManager {
     this.versions.set(version.id, version);
   }
 
-  private getLastPatch(): string {
-    const leavesIds = this.getLeaves();
-    const longestLeaves = this.getLongestBranchLeaf(leavesIds).map(
-      (leafId) => this.versions.get(leafId)!,
-    );
+  private getLastVersion(): string | null {
+    const leavesIds = this.getLeaves(this.versions);
+    if (leavesIds.size === 0) {
+      return null;
+    }
+    const longestLeaves = this.getLongestBranchLeaf(
+      leavesIds,
+      this.versions,
+    ).map((leafId) => this.versions.get(leafId)!);
     longestLeaves.sort((a, b) => (a.date < b.date ? 1 : -1));
     return longestLeaves.pop()!.id;
   }
 
-  private getLeaves(): Set<VersionID> {
+  private getLeaves(versions: Map<VersionID, Version>): Set<VersionID> {
     const leaves: Set<VersionID> = new Set();
     const seen: Set<VersionID> = new Set();
-    this.versions.forEach((version, id) => {
-      if (seen.has(id)) return;
+    for (const [id, version] of versions) {
+      if (seen.has(id)) continue;
       if (version.parent) {
         seen.add(version.parent);
         leaves.delete(version.parent);
       }
       leaves.add(id);
-    });
+    }
     return leaves;
   }
 
-  private getLongestBranchLeaf(leaves: Set<VersionID>): VersionID[] {
+  private getLongestBranchLeaf(
+    leaves: Set<VersionID>,
+    versions: Map<VersionID, Version>,
+  ): VersionID[] {
     const rootDistanceByVersion: Map<VersionID, number> = new Map();
     let maxDistance = 0;
     const leafDistances: { leaf: VersionID; distance: number }[] = [];
 
-    for (const leaf of Array.from(leaves)) {
-      const distance = this.getVersionRootDistance(leaf, rootDistanceByVersion);
+    for (const leaf of leaves) {
+      const distance = this.getVersionRootDistance(
+        leaf,
+        rootDistanceByVersion,
+        versions,
+      );
       leafDistances.push({ leaf, distance });
       if (distance > maxDistance) {
         maxDistance = distance;
@@ -100,18 +111,23 @@ export class VersionManager {
   private getVersionRootDistance(
     versionId: VersionID,
     rootDistanceByVersion: Map<VersionID, number>,
+    allVersions: Map<VersionID, Version>,
   ): number {
     if (rootDistanceByVersion.has(versionId)) {
       return rootDistanceByVersion.get(versionId)!;
     }
-    const version = this.versions.get(versionId);
+    const version = allVersions.get(versionId);
     if (!version) throw Error(`Version not found: ${versionId}`);
     if (!version.parent) {
       rootDistanceByVersion.set(versionId, 0);
       return 0;
     }
     const distance =
-      this.getVersionRootDistance(version.parent, rootDistanceByVersion) + 1;
+      this.getVersionRootDistance(
+        version.parent,
+        rootDistanceByVersion,
+        allVersions,
+      ) + 1;
     rootDistanceByVersion.set(versionId, distance);
     return distance;
   }
