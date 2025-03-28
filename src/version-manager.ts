@@ -1,4 +1,4 @@
-import { Version, VersionID } from "./version";
+import { Version, VersionID } from "./version.js";
 
 export class VersionManager {
   private versions: Map<VersionID, Version>;
@@ -20,6 +20,10 @@ export class VersionManager {
     this.addVersionRaw(version);
     this.lastVersion = this.getLastVersion();
     this.cachedMainBranch = null;
+  }
+
+  public getAllVersions(): Version[] {
+    return Array.from(this.versions.values());
   }
 
   public getMainBranch(): Version[] {

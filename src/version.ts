@@ -1,4 +1,4 @@
-import { getPatchFromTexts, Patch } from "./patch";
+import { getPatchFromTexts, Patch } from "./patch.js";
 
 export type VersionID = string;
 
