@@ -1,4 +1,4 @@
-import { Version, VersionID } from "./version.js";
+import { Version, VersionID } from "./version";
 
 export class VersionManager {
   private versions: Map<VersionID, Version>;
