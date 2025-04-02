@@ -1,6 +1,6 @@
 import { compileTextFromVersions } from "./compile";
 import { newVersion, Version, VersionID } from "./version";
-import { VersionManager } from "./version-manager";
+import { VersionError, VersionManager } from "./version-manager";
 
 export {
   VersionManager,
@@ -8,4 +8,5 @@ export {
   newVersion,
   VersionID,
   compileTextFromVersions,
+  VersionError,
 };
