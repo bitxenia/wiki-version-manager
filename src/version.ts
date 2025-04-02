@@ -9,6 +9,10 @@ export type Version = {
   parent: string | null;
 };
 
+/**
+ * Creates a new version from comparing old and new article text, taking into
+ * consideration the parent of the new version.
+ */
 export function newVersion(
   oldText: string,
   newText: string,

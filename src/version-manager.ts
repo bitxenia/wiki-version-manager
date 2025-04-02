@@ -21,11 +21,21 @@ export class VersionError extends Error {
   }
 }
 
+/**
+ * Class for managing an article's versions, making version tree operations
+ * simpler.
+ */
 export class VersionManager {
   private versions: Map<VersionID, Version>;
   private lastVersion: VersionID | null;
   private cachedMainBranch: Version[] | null;
 
+  /**
+   * @param versions Unordered array of versions for initializing a
+   * VersionManager with an already existing article. This is the preferred way
+   * to do that, as addVersion assumes the parent is already present, which
+   * might not be the case in an unordered array.
+   */
   constructor(versions?: Version[]) {
     this.versions = new Map();
     if (versions) {
@@ -37,16 +47,32 @@ export class VersionManager {
     this.cachedMainBranch = null;
   }
 
+  /**
+   * Adds a version to the tree and calculates latest version again.
+   * @throws VersionError of name ALREADY_EXISTS.
+   */
   public addVersion(version: Version) {
     this.addVersionRaw(version);
     this.lastVersion = this.getLastVersion();
     this.cachedMainBranch = null;
   }
 
+  /**
+   * Returns all versions in an unordered array.
+   */
   public getAllVersions(): Version[] {
     return Array.from(this.versions.values());
   }
 
+  /**
+   * Gets the main branch of the article. The main branch is determined by:
+   * 1. Which branch is the longest, and
+   * 2. If two or more branches are the longest, the one with the oldest latest
+   * version (leaf) is chosen.
+   *
+   * @returns the main branch as an array of versions, from the root version to
+   * the latest version.
+   */
   public getMainBranch(): Version[] {
     if (this.cachedMainBranch) return this.cachedMainBranch;
     let leaf: VersionID | null = this.lastVersion;
