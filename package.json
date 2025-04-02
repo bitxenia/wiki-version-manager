@@ -1,7 +1,7 @@
 {
-  "name": "wiki-version-manager",
+  "name": "@bitxenia/wiki-version-manager",
   "version": "0.1.2",
-  "description": "Library for managing versions in bitxenia's wiki.",
+  "description": "Library for managing versions in bitxenia's astra wiki.",
   "scripts": {
     "build": "tsup",
     "test": "jest",

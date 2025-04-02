@@ -7,7 +7,7 @@ export function compileTextFromVersions(versions: Version[]): string {
   const [ret, results] = dmp.patch_apply(patches, "");
   for (let i = 0; i < results.length; i++) {
     if (!results[i]) {
-      throw new Error(`Failed to apply patch ${i}`);
+      throw new Error("Failed to apply patch");
     }
   }
   return ret;

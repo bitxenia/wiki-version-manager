@@ -1,5 +1,26 @@
 import { Version, VersionID } from "./version";
 
+type ErrorName = "NOT_FOUND" | "ALREADY_EXISTS";
+
+export class VersionError extends Error {
+  name: ErrorName;
+  message: string;
+  version: VersionID;
+  cause?: unknown;
+  constructor(
+    name: ErrorName,
+    message: string,
+    version: VersionID,
+    cause?: any,
+  ) {
+    super();
+    this.name = name;
+    this.message = message;
+    this.version = version;
+    this.cause = cause;
+  }
+}
+
 export class VersionManager {
   private versions: Map<VersionID, Version>;
   private lastVersion: VersionID | null;
@@ -45,8 +66,13 @@ export class VersionManager {
     let currentVersion: VersionID | null = version;
     while (currentVersion) {
       const version = this.versions.get(currentVersion);
-      if (!version)
-        throw Error("Version not found while walking main version branch");
+      if (!version) {
+        throw new VersionError(
+          "NOT_FOUND",
+          "Version not found while walking main version branch",
+          currentVersion,
+        );
+      }
       ret.push(version);
       currentVersion = version.parent;
     }
@@ -56,7 +82,11 @@ export class VersionManager {
 
   private addVersionRaw(version: Version) {
     if (this.versions.has(version.id)) {
-      throw Error("Version with the same ID already exists");
+      throw new VersionError(
+        "ALREADY_EXISTS",
+        "Version with the same ID already exists",
+        version.id,
+      );
     }
     this.versions.set(version.id, version);
   }
@@ -121,7 +151,13 @@ export class VersionManager {
       return rootDistanceByVersion.get(versionId)!;
     }
     const version = allVersions.get(versionId);
-    if (!version) throw Error(`Version not found: ${versionId}`);
+    if (!version) {
+      throw new VersionError(
+        "NOT_FOUND",
+        "Version not found while getting version distance",
+        versionId,
+      );
+    }
     if (!version.parent) {
       rootDistanceByVersion.set(versionId, 0);
       return 0;
