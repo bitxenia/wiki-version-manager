@@ -12,7 +12,7 @@ versions can have the same parent version, avoiding invalid states altogether.
 ## Installation
 
 ```bash
-npm install wiki-version-manager
+npm install @bitxenia/wiki-version-manager
 ```
 
 ## Usage
